@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="info.nightscout.nsupload"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.BATTERY_STATS"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+
+        <receiver
+            android:name=".ReceiverBG"
+            android:exported="true"
+
+            >
+            <intent-filter>
+                <action android:name="danaR.action.BG_DATA" />
+            </intent-filter>
+        </receiver>
+        <service
+            android:name=".ServiceBG"
+
+            android:exported="false" />
+
+        <receiver
+            android:name=".TempBasalData"
+
+            >
+            <intent-filter>
+                <action android:name="danaR.action.TEMP_BASAL_DATA"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".NetworkChangeReceiver" >
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".UserEventData"
+
+            >
+            <intent-filter>
+                <action android:name="danaR.action.USER_EVENT_DATA"/>
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>
