@@ -1,68 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="info.nightscout.nsupload"
-          xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="info.nightscout.client">
 
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.BATTERY_STATS"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.BATTERY_STATS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
+        android:name=".MainApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:process=":mainProcess"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-
+        <activity
+            android:name=".PreferencesActivity"
+            android:label="@string/action_preferences"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="info.nightscout.client.MainActivity" />
+        </activity>
+        <!--
         <receiver
             android:name=".ReceiverBG"
-            android:exported="true"
-
-            >
+            android:exported="true">
             <intent-filter>
                 <action android:name="danaR.action.BG_DATA" />
             </intent-filter>
         </receiver>
+        -->
         <service
-            android:name=".ServiceBG"
-
+            android:name=".services.ServiceBG"
             android:exported="false" />
 
         <receiver
-            android:name=".TempBasalData"
-
-            >
+            android:name=".receivers.AutoStart"
+            android:enabled="true"
+            android:exported="false">
             <intent-filter>
-                <action android:name="danaR.action.TEMP_BASAL_DATA"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".NetworkChangeReceiver" >
+        <!-- DanaApp receivers -->
+        <receiver android:name="info.nightscout.nsupload.TempBasalData">
+            <intent-filter>
+                <action android:name="danaR.action.TEMP_BASAL_DATA" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name="info.nightscout.nsupload.UserEventData">
+            <intent-filter>
+                <action android:name="danaR.action.USER_EVENT_DATA" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Handle database access requests -->
+        <receiver
+            android:name=".receivers.DBAccessReceiver"
+            android:enabled="true"
+            android:exported="false"
+            android:process=":mainProcess">
+            <intent-filter>
+                <action android:name="info.nightscout.client.DBACCESS" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Network change local receiver -->
+        <receiver android:name=".receivers.NetworkChangeReceiver">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
             </intent-filter>
         </receiver>
+        <!-- Receiver to keep alive NS service -->
         <receiver
-            android:name=".UserEventData"
-
-            >
+            android:name=".receivers.ReceiverKeepAlive"
+            android:process=":mainProcess">
             <intent-filter>
-                <action android:name="danaR.action.USER_EVENT_DATA"/>
+                <action android:name="info.nightscout.client.ReceiverKeepAlive.action.PING" />
             </intent-filter>
         </receiver>
+
+        <service
+            android:name=".services.ServiceNS"
+            android:enabled="true"
+            android:exported="false"
+            android:process=":mainProcess" />
 
     </application>
 

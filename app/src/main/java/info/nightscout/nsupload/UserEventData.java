@@ -8,7 +8,6 @@ import info.nightscout.nsupload.model.Treatment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -24,7 +23,7 @@ public class UserEventData extends BroadcastReceiver{
 
 
         try {
-            final NightscoutUploader upload = new NightscoutUploader(Settings.baseURLSettings);
+            final NightscoutUploader upload = new NightscoutUploader();
             final ArrayList<Treatment> records = new ArrayList<>();
 
             Treatment treatment = new Treatment();

@@ -5,12 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -34,7 +31,7 @@ public class TempBasalData extends BroadcastReceiver{
         log.debug(tempBasal.toString());
 
         try {
-            final NightscoutUploader upload = new NightscoutUploader(Settings.baseURLSettings);
+            final NightscoutUploader upload = new NightscoutUploader();
             final ArrayList<Treatment> records = new ArrayList<>();
 
             Treatment treatment = new Treatment();

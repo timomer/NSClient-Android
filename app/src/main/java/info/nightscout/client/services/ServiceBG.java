@@ -1,4 +1,4 @@
-package info.nightscout.nsupload;
+package info.nightscout.client.services;
 
 
 import android.content.Intent;
@@ -12,6 +12,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import info.nightscout.client.receivers.ReceiverBG;
+import info.nightscout.nsupload.NightscoutUploader;
 import info.nightscout.nsupload.model.Entry;
 
 
@@ -63,7 +65,7 @@ public class ServiceBG extends android.app.IntentService {
 
     public void upload(Date time, int glucoseValue) throws Exception {
 
-        NightscoutUploader up = new NightscoutUploader(Settings.baseURLSettings);
+        NightscoutUploader up = new NightscoutUploader();
 
 
         ArrayList<Entry> glucoseDataSets = new ArrayList<>();

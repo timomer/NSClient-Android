@@ -1,3 +1,31 @@
 <resources>
-    <string name="app_name">NSupload</string>
+    <string name="app_name">NS client</string>
+    <string name="action_preferences">Preferences</string>
+    <string name="action_clearlog">Clear log</string>
+    <string name="action_restartservices">Restart WS client</string>
+    <string name="action_showqueue">Show queue</string>
+    <string name="action_deliverqueue">Deliver now</string>
+    <string name="action_clearqueue">Clear queue</string>
+    <string name="action_runtest">Run test</string>
+
+    <string name="ns_api_title">Nightscout connection</string>
+    <string name="ns_enable_title">Connect to Nightscout</string>
+    <string name="ns_url_title">Nightscout URL</string>
+    <string name="ns_url_dialogtitle">Enter your Nightscout URL</string>
+    <string name="ns_url_dialogmessage">This only the base URL</string>
+    <string name="ns_api_secret_title">Nightscout API secret</string>
+    <string name="ns_api_secret_dialogtitle">Enter your Nightscout API_SECRET</string>
+    <string name="ns_api_secret_dialogmessage">API_SECRET on the server should match yourpassphrase in this setting.</string>
+    <string name="ns_emulate_xdrip">Emulate xDrip</string>
+    <string name="ns_emulate_xdrip_summary">Send broadcasts based on incomming data from NS. Do NOT use with real xDrip together.</string>
+    <string name="ns_api_device_title">Device name</string>
+    <string name="ns_api_device_dialogtitle">Device name</string>
+    <string name="ns_api_device_dialogmessage">Enter device name</string>
+    <string name="ns_sendtodanaapp">DanaApp support</string>
+    <string name="ns_ns_sendtodanaapp_summary">Send BG readings to DanaApp. Do NOT use with real xDrip together.</string>
+    <string name="ns_api_hours">Hours to fetch</string>
+    <string name="ns_api_hours_summary">Number of hours to te past to read from Nightscout</string>
+    <string name="ns_api_hours_dialogtitle">Hours to fetch</string>
+    <string name="ns_api_hours_dialogmessage">Enter number of hours</string>
+
 </resources>

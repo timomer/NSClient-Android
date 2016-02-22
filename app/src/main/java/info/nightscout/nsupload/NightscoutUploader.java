@@ -1,6 +1,7 @@
 package info.nightscout.nsupload;
 
-import android.util.Log;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
@@ -9,12 +10,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import info.nightscout.client.MainApp;
 import info.nightscout.nsupload.model.Entry;
 import info.nightscout.nsupload.model.Treatment;
 import okhttp3.ConnectionPool;
@@ -33,7 +32,6 @@ public class NightscoutUploader {
     private OkHttpClient client;
     private final NightscoutService nightscoutService;
     private final String hashedSecret;
-
 
     public interface NightscoutService {
         @POST("entries")
@@ -59,21 +57,21 @@ public class NightscoutUploader {
         }
     }
 
-    public NightscoutUploader(String baseURI) throws Exception {
+    public NightscoutUploader() throws Exception {
+        SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
+        boolean nsEnabled = SP.getBoolean("ns_enable", false);
+        String nsURL = SP.getString("ns_url", "");
+        String nsAPISecret = SP.getString("ns_api_secret", "");
+        String nsDevice = SP.getString("ns_api_device", android.os.Build.MODEL);
+
         client = (new OkHttpClient.Builder()).connectionPool(new ConnectionPool(1, 5, TimeUnit.MILLISECONDS)).build();
 
-
-        URI uri = new URI(baseURI);
-
-        String baseURL;
-        String secret = uri.getUserInfo();
-
-        baseURL = baseURI.replaceFirst("//[^@]+@", "//");
+        String baseURL = nsURL + "/api/v1/";
 
         Retrofit retrofit = new Retrofit.Builder().baseUrl(baseURL).client(client).build();
         nightscoutService = retrofit.create(NightscoutService.class);
 
-        hashedSecret = Hashing.sha1().hashBytes(secret.getBytes(Charsets.UTF_8)).toString();
+        hashedSecret = Hashing.sha1().hashBytes(nsAPISecret.getBytes(Charsets.UTF_8)).toString();
     }
 
     public boolean doRESTUpload(List<Entry> glucoseDataSets) throws Exception {
