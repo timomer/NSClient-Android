@@ -18,9 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URISyntaxException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 
 import info.nightscout.client.acks.NSAddAck;
 import info.nightscout.client.acks.NSAuthAck;
@@ -182,7 +179,7 @@ public class NSClient {
     private Emitter.Listener onPing = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
-            log.debug("NSCLIENT Ping received");
+            if (Config.detailedLog) log.debug("NSCLIENT Ping received");
             // send data if there is something waiting
             UploadQueue.resend();
         }

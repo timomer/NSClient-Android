@@ -7,6 +7,7 @@ import android.support.v4.content.WakefulBroadcastReceiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import info.nightscout.client.Config;
 import info.nightscout.client.services.ServiceNS;
 
 public class ReceiverKeepAlive extends WakefulBroadcastReceiver {
@@ -21,7 +22,7 @@ public class ReceiverKeepAlive extends WakefulBroadcastReceiver {
                 .setAction(intent.getAction())
                 .putExtras(intent));
         //log.debug("KEEPALIVE started ServiceNS " + intent);
-        log.debug("KEEPALIVE");
+        if (Config.detailedLog) log.debug("KEEPALIVE");
 
     }
 

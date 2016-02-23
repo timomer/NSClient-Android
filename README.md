@@ -3,8 +3,6 @@ NS Client
 
 [![Join the chat at https://gitter.im/nightscout/NSClient-Android](https://badges.gitter.im/nightscout/NSClient-Android.svg)](https://gitter.im/nightscout/NSClient-Android?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
- - Visit apk dir for compiled app
-
  - What it does?
  
  It just connects to your Nightscout server and provide support for other applications.
