@@ -258,9 +258,9 @@ public class NSClient {
                             }
                             // ********* TEST CODE END ********
                             bt.handleNewTreatment(treatment,MainApp.instance().getApplicationContext());
-                        } else if (treatment.getAction() == "update") {
+                        } else if (treatment.getAction().equals("update")) {
                             bt.handleChangedTreatment(jsonTreatment, MainApp.instance().getApplicationContext());
-                        } if (treatment.getAction() == "remove") {
+                        } else if (treatment.getAction().equals("remove")) {
                             bt.handleRemovedTreatment(jsonTreatment, MainApp.instance().getApplicationContext());
                         }
                     }

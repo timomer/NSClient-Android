@@ -62,7 +62,7 @@ public class BroadcastTreatment {
             List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
 
             try {
-                log.debug("TREAT_CHANGE" + treatment.getString("_id") + " " + x.size() + " receivers");
+                log.debug("TREAT_CHANGE " + treatment.getString("_id") + " " + x.size() + " receivers");
             } catch (JSONException e) {}
 
             } finally {
@@ -84,7 +84,7 @@ public class BroadcastTreatment {
             List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
 
             try {
-                log.debug("TREAT_REMOVE" + treatment.getString("_id") + " " + x.size() + " receivers");
+                log.debug("TREAT_REMOVE " + treatment.getString("_id") + " " + x.size() + " receivers");
             } catch (JSONException e) {}
 
         } finally {
