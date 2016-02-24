@@ -24,12 +24,14 @@ import info.nightscout.client.acks.NSAuthAck;
 import info.nightscout.client.acks.NSUpdateAck;
 import info.nightscout.client.broadcasts.BroadcastProfile;
 import info.nightscout.client.broadcasts.BroadcastSgvs;
+import info.nightscout.client.broadcasts.BroadcastStatus;
 import info.nightscout.client.broadcasts.BroadcastTreatment;
 import info.nightscout.client.data.DbAddRequest;
 import info.nightscout.client.data.DbRemoveRequest;
 import info.nightscout.client.data.DbUpdateRequest;
 import info.nightscout.client.data.NSCal;
 import info.nightscout.client.data.NSSgv;
+import info.nightscout.client.data.NSStatus;
 import info.nightscout.client.data.NSTreatment;
 import info.nightscout.client.data.UploadQueue;
 import info.nightscout.client.events.NSStatusEvent;
@@ -204,16 +206,14 @@ public class NSClient {
 
                 if (data.has("status")) {
                     JSONObject status = data.getJSONObject("status");
-                    if (status.has("activeProfile")) {
-                        activeProfile = status.getString("activeProfile");
-                        if (activeProfile != "null") {
-                            MainApp.setNsActiveProfile(activeProfile);
-                            log.debug("NSCLIENT status activeProfile received: " + activeProfile);
-                        } else {
-                            activeProfile = null;
-                            MainApp.setNsActiveProfile(null);
-                        }
+                    NSStatus nsStatus = new NSStatus(status);
+                    activeProfile = nsStatus.getActiveProfile();
+                    MainApp.setNsActiveProfile(activeProfile);
+                    if (activeProfile != null) {
+                        log.debug("NSCLIENT status activeProfile received: " + activeProfile);
                     }
+                    BroadcastStatus bs = new BroadcastStatus();
+                    bs.handleNewStatus(nsStatus, MainApp.instance().getApplicationContext(), isDelta);
                     /*  Other received data to 2016/02/10
                         {
                           status: 'ok'
@@ -239,7 +239,7 @@ public class NSClient {
                         NSProfile nsProfile = new NSProfile(profile,activeProfile);
                         MainApp.setNsProfile(nsProfile);
                         log.debug("NSCLIENT profile received: " + nsProfile.log());
-                        bp.handleNewTreatment(nsProfile, MainApp.instance().getApplicationContext() );
+                        bp.handleNewTreatment(nsProfile, MainApp.instance().getApplicationContext(), isDelta);
                     }
                 }
                 if (data.has("treatments")) {
@@ -257,11 +257,11 @@ public class NSClient {
                                 continue;
                             }
                             // ********* TEST CODE END ********
-                            bt.handleNewTreatment(treatment,MainApp.instance().getApplicationContext());
+                            bt.handleNewTreatment(treatment,MainApp.instance().getApplicationContext(), isDelta);
                         } else if (treatment.getAction().equals("update")) {
-                            bt.handleChangedTreatment(jsonTreatment, MainApp.instance().getApplicationContext());
+                            bt.handleChangedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
                         } else if (treatment.getAction().equals("remove")) {
-                            bt.handleRemovedTreatment(jsonTreatment, MainApp.instance().getApplicationContext());
+                            bt.handleRemovedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
                         }
                     }
                 }
@@ -299,7 +299,7 @@ public class NSClient {
                             BgReading bgReading = new BgReading(sgv, actualCal, units);
                             emulator.handleNewBgReading(bgReading, isFull && index == 0, MainApp.instance().getApplicationContext());
                         }
-                        bs.handleNewSgv(sgv, MainApp.instance().getApplicationContext());
+                        bs.handleNewSgv(sgv, MainApp.instance().getApplicationContext(), isDelta);
                     }
                 }
             } catch (JSONException e) {
