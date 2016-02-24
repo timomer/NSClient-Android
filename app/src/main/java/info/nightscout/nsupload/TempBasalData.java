@@ -18,7 +18,7 @@ public class TempBasalData extends BroadcastReceiver{
 
     @Override
 	public void onReceive(Context context, Intent intent) {
-        log.debug("onReceive TempBasalData");
+        log.debug("DANAAPP TempBasalData receive");
         Bundle bundle = intent.getExtras();
 
         TempBasal tempBasal = new TempBasal();

@@ -6,6 +6,7 @@
     <string name="action_showqueue">Show queue</string>
     <string name="action_deliverqueue">Deliver now</string>
     <string name="action_clearqueue">Clear queue</string>
+    <string name="action_resenddanaapp">Resend DanaApp broadcast</string>
     <string name="action_runtest">Run test</string>
 
     <string name="ns_api_title">Nightscout connection</string>

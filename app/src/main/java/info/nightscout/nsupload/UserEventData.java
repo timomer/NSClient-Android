@@ -16,7 +16,7 @@ public class UserEventData extends BroadcastReceiver{
 
     @Override
 	public void onReceive(Context context, Intent intent) {
-        log.debug("onReceive");
+        log.debug("DANAAPP TreatmentReceive");
         Bundle bundle = intent.getExtras();
         long time = bundle.getLong("time");
         int value = bundle.getInt("value");

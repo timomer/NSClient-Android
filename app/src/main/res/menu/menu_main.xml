@@ -22,6 +22,9 @@
         android:id="@+id/action_clearqueue"
         android:title="@string/action_clearqueue" />
     <item
+        android:id="@+id/action_ressenddanaapp"
+        android:title="@string/action_resenddanaapp" />
+    <item
         android:id="@+id/action_runtest"
         android:title="@string/action_runtest" />
     <!--    <item

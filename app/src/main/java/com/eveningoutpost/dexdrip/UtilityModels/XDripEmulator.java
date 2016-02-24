@@ -13,9 +13,11 @@ import com.eveningoutpost.dexdrip.Models.BgReading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -28,6 +30,8 @@ import info.nightscout.client.MainApp;
 public class XDripEmulator {
     private static Logger log = LoggerFactory.getLogger(XDripEmulator.class);
     private static List<BgReading> latest6bgReadings = new ArrayList<BgReading>();
+    static DecimalFormat formatNumber1place = new DecimalFormat("0.0");
+
 
     public void handleNewBgReading(BgReading bgReading, boolean isFull, Context context) {
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
@@ -62,6 +66,14 @@ public class XDripEmulator {
 
             // add new reading
             latest6bgReadings.add(bgReading);
+            // sort
+            class BgReadingsComparator implements Comparator<BgReading> {
+                @Override
+                public int compare(BgReading a, BgReading b) {
+                    return a.timestamp > b.timestamp ? 1 : (a.timestamp < b.timestamp ? -1 : 0);
+                }
+            }
+            Collections.sort(latest6bgReadings, new BgReadingsComparator());
             // cut off to 6 records
             if (latest6bgReadings.size() > 7) latest6bgReadings.remove(0);
 
@@ -72,11 +84,11 @@ public class XDripEmulator {
         }
     }
 
-    private static void sendToBroadcastReceiverToDanaApp(Context context) {
+    public static void sendToBroadcastReceiverToDanaApp(Context context) {
 
 
         Intent intent = new Intent("danaR.action.BG_DATA");
-        Collections.reverse(latest6bgReadings);
+        //Collections.reverse(latest6bgReadings);
 
         int sizeRecords = latest6bgReadings.size();
         double deltaAvg30min = 0d;
@@ -89,6 +101,7 @@ public class XDripEmulator {
         if (sizeRecords > 6) {
             for (int i = sizeRecords - 6; i < sizeRecords; i++) {
                 short glucoseValueBeeingProcessed = (short) latest6bgReadings.get(i).value;
+                log.debug("DANAAPP" + i + ": " + formatNumber1place.format(glucoseValueBeeingProcessed / 18d));
                 if (glucoseValueBeeingProcessed < 40) {
                     notGood = true;
                     log.debug("DANAAPP data not good " + latest6bgReadings.get(i).timestamp);

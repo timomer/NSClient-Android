@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.eveningoutpost.dexdrip.UtilityModels.XDripEmulator;
 import com.squareup.otto.Subscribe;
 
 import ch.qos.logback.classic.Level;
@@ -129,6 +130,12 @@ public class MainActivity extends AppCompatActivity {
 
         if (id == R.id.action_clearqueue) {
             UploadQueue.reset();
+            return true;
+        }
+
+        if (id == R.id.action_ressenddanaapp) {
+            XDripEmulator xe = new XDripEmulator();
+            xe.sendToBroadcastReceiverToDanaApp(getApplicationContext());
             return true;
         }
 
