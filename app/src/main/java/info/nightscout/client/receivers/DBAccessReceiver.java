@@ -45,11 +45,11 @@ public class DBAccessReceiver extends BroadcastReceiver {
                 log.debug("DBACCESS wrong collection specified");
                 return;
             }
-            if (!data.has("created_at") && colection.equals("treatments")) {
+            if (!data.has("created_at") && collection.equals("treatments")) {
                 log.debug("DBACCESS created_at missing on dbAdd");
                 return;
             }
-            if (!data.has("eventType") && colection.equals("treatments")) {
+            if (!data.has("eventType") && collection.equals("treatments")) {
                 log.debug("DBACCESS eventType missing on dbAdd");
                 return;
             }
