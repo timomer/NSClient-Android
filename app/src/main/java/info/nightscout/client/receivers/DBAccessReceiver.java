@@ -65,7 +65,7 @@ public class DBAccessReceiver extends BroadcastReceiver {
                 log.debug(UploadQueue.status());
                 return;
             }
-            log.debug("DBACCESS dbAdd processed: " + key);
+            log.debug("DBACCESS dbAdd processed: " + data.toString());
         }
 
         if (action.equals("dbRemove")) {
@@ -104,7 +104,7 @@ public class DBAccessReceiver extends BroadcastReceiver {
                 log.debug(UploadQueue.status());
                 return;
             }
-            log.debug("DBACCESS dbUpdate processed: " + _id);
+            log.debug("DBACCESS dbUpdate processed: " + _id + " " + data.toString());
         }
 
         if (action.equals("dbUpdateUnset")) {
@@ -124,7 +124,7 @@ public class DBAccessReceiver extends BroadcastReceiver {
                 log.debug(UploadQueue.status());
                 return;
             }
-            log.debug("DBACCESS dbUpdateUnset processed: " + _id);
+            log.debug("DBACCESS dbUpdateUnset processed: " + _id + " " + data.toString());
         }
 
     }

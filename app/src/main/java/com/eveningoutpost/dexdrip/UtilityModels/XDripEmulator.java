@@ -101,7 +101,7 @@ public class XDripEmulator {
         if (sizeRecords > 6) {
             for (int i = sizeRecords - 6; i < sizeRecords; i++) {
                 short glucoseValueBeeingProcessed = (short) latest6bgReadings.get(i).value;
-                log.debug("DANAAPP" + i + ": " + formatNumber1place.format(glucoseValueBeeingProcessed / 18d));
+                //log.debug("DANAAPP" + i + ": " + formatNumber1place.format(glucoseValueBeeingProcessed / 18d));
                 if (glucoseValueBeeingProcessed < 40) {
                     notGood = true;
                     log.debug("DANAAPP data not good " + latest6bgReadings.get(i).timestamp);
