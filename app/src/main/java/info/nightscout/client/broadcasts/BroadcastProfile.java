@@ -33,6 +33,7 @@ public class BroadcastProfile {
         try {
             Bundle bundle = new Bundle();
             bundle.putString("profile", profile.getData().toString());
+            bundle.putString("activeprofile", profile.getActiveProfile());
             bundle.putBoolean("delta", isDelta);
             Intent intent = new Intent(Intents.ACTION_NEW_PROFILE);
             intent.putExtras(bundle);

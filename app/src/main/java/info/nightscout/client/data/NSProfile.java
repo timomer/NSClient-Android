@@ -175,4 +175,8 @@ public class NSProfile {
         }
         return 0D;
     }
+
+    public String getActiveProfile() {
+        return activeProfile;
+    }
 }
