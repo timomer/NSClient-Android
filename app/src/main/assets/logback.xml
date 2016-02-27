@@ -1,17 +1,17 @@
 <configuration>
-  <!-- Create a file appender for a log in the application's data directory -->
+<!-- Create a file appender for a log in the application's data directory -->
 
-    <appender name="logcat" class="ch.qos.logback.classic.android.LogcatAppender">
-	  <tagEncoder>
-		  <pattern>%logger{0}</pattern>
-	  </tagEncoder>
-    <encoder>
-      <pattern>[%thread] %-5level %logger{36} - %msg%n</pattern>
-    </encoder>
-  </appender>
-  
-  <!-- Write INFO (and higher-level) messages to the log file -->
-  <root level="DEBUG">
-	<appender-ref ref="logcat" />
-  </root>
+<appender name="logcat" class="ch.qos.logback.classic.android.LogcatAppender">
+  <tagEncoder>
+    <pattern>%logger{0}</pattern>
+  </tagEncoder>
+  <encoder>
+    <pattern>[%thread] %-5level %logger{36} - %msg%n</pattern>
+  </encoder>
+</appender>
+
+<!-- Write INFO (and higher-level) messages to the log file -->
+<root level="DEBUG">
+  <appender-ref ref="logcat" />
+</root>
 </configuration>

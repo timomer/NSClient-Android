@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +13,7 @@ import info.nightscout.client.MainApp;
 import info.nightscout.client.NSClient;
 import info.nightscout.client.acks.NSAddAck;
 import info.nightscout.client.acks.NSUpdateAck;
-import info.nightscout.client.data.DbAddRequest;
-import info.nightscout.client.data.DbRemoveRequest;
-import info.nightscout.client.data.DbUpdateRequest;
+import info.nightscout.client.data.DbRequest;
 import info.nightscout.client.data.UploadQueue;
 
 public class DBAccessReceiver extends BroadcastReceiver {
@@ -45,23 +42,12 @@ public class DBAccessReceiver extends BroadcastReceiver {
                 log.debug("DBACCESS wrong collection specified");
                 return;
             }
-            if (!data.has("created_at") && collection.equals("treatments")) {
-                log.debug("DBACCESS created_at missing on dbAdd");
-                return;
-            }
-            if (!data.has("eventType") && collection.equals("treatments")) {
-                log.debug("DBACCESS eventType missing on dbAdd");
-                return;
-            }
-            DbAddRequest dbar = new DbAddRequest();
-            dbar.collection = collection;
-            dbar.data = data;
+            DbRequest dbar = new DbRequest("dbAdd", collection, data);
             NSAddAck addAck = new NSAddAck();
             nsClient.dbAdd(dbar, addAck);
-            String key = dbar.data.optString("created_at") + " " + dbar.data.optString("eventType");
             if (addAck._id == null) {
                 log.debug("DBACCESS No response on dbAdd");
-                UploadQueue.addQueue.put(key, dbar);
+                UploadQueue.queue.put(dbar.hash(), dbar);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -73,14 +59,12 @@ public class DBAccessReceiver extends BroadcastReceiver {
                 log.debug("DBACCESS wrong collection specified");
                 return;
             }
-            DbRemoveRequest dbrr = new DbRemoveRequest();
-            dbrr.collection = collection;
-            dbrr._id = _id;
+            DbRequest dbrr = new DbRequest("dbRemove", collection, _id);
             NSUpdateAck updateAck = new NSUpdateAck();
             nsClient.dbRemove(dbrr, updateAck);
             if (!updateAck.result) {
                 log.debug("DBACCESS No response on dbRemove");
-                UploadQueue.removeQueue.put(_id, dbrr);
+                UploadQueue.queue.put(dbrr.hash(), dbrr);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -92,15 +76,12 @@ public class DBAccessReceiver extends BroadcastReceiver {
                 log.debug("DBACCESS wrong collection specified");
                 return;
             }
-            DbUpdateRequest dbur = new DbUpdateRequest();
-            dbur.collection = collection;
-            dbur._id = _id;
-            dbur.data = data;
+            DbRequest dbur = new DbRequest("dbUpdate", collection, _id, data);
             NSUpdateAck updateAck = new NSUpdateAck();
             nsClient.dbUpdate(dbur, updateAck);
             if (!updateAck.result) {
                 log.debug("DBACCESS No response on dbUpdate");
-                UploadQueue.updateQueue.put(_id, dbur);
+                UploadQueue.queue.put(dbur.hash(), dbur);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -112,15 +93,12 @@ public class DBAccessReceiver extends BroadcastReceiver {
                 log.debug("DBACCESS wrong collection specified");
                 return;
             }
-            DbUpdateRequest dbur = new DbUpdateRequest();
-            dbur.collection = collection;
-            dbur._id = _id;
-            dbur.data = data;
+            DbRequest dbur = new DbRequest("dbUpdateUnset", collection, _id, data);
             NSUpdateAck updateAck = new NSUpdateAck();
             nsClient.dbUpdateUnset(dbur, updateAck);
             if (!updateAck.result) {
                 log.debug("DBACCESS No response on dbUpdateUnset");
-                UploadQueue.updateUnsetQueue.put(_id, dbur);
+                UploadQueue.queue.put(_id, dbur);
                 log.debug(UploadQueue.status());
                 return;
             }

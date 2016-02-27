@@ -18,96 +18,94 @@ import info.nightscout.client.acks.NSUpdateAck;
 public class UploadQueue {
     private static Logger log = LoggerFactory.getLogger(UploadQueue.class);
 
-    public static HashMap<String,DbUpdateRequest> updateQueue = null;
-    public static HashMap<String,DbUpdateRequest> updateUnsetQueue = null;
-    public static HashMap<String,DbAddRequest> addQueue = null;
-    public static HashMap<String,DbRemoveRequest> removeQueue = null;
+    public static HashMap<String,DbRequest> queue = null;
+
+    private static boolean resendRunning = false;
 
     public UploadQueue() {
-        if (updateQueue == null) updateQueue = new HashMap<String,DbUpdateRequest>();
-        if (updateUnsetQueue == null) updateUnsetQueue = new HashMap<String,DbUpdateRequest>();
-        if (addQueue == null) addQueue = new HashMap<String,DbAddRequest>();
-        if (removeQueue == null) removeQueue = new HashMap<String,DbRemoveRequest>();
+        if (queue == null) queue = new HashMap<String,DbRequest>();
     }
 
     public static String status() {
-        return "QUEUE Add: " + addQueue.size() + " Remove: " + removeQueue.size() + " Update: " + updateQueue.size() + " Unset: " + updateUnsetQueue.size() ;
+        return "QUEUE: " + queue.size();
     }
 
     public static void reset() {
         log.debug("QUEUE Reset");
-        updateQueue.clear();
-        updateUnsetQueue.clear();
-        addQueue.clear();
-        removeQueue.clear();
+        queue.clear();
         log.debug(status());
     }
 
     public static void resend() {
-        if (addQueue.size() == 0 && removeQueue.size() == 0 &&  updateQueue.size() ==0 && updateUnsetQueue.size() == 0)
+        if (queue.size() == 0)
             return;
 
-        NSClient nsClient = MainApp.getNSClient();
+        if (resendRunning) return;
+        resendRunning = true;
+
+        final NSClient nsClient = MainApp.getNSClient();
         log.debug("QUEUE Resend started");
 
-        Iterator<Map.Entry<String,DbAddRequest>> addIter = addQueue.entrySet().iterator();
-        while (addIter.hasNext()) {
-            DbAddRequest dbar = addIter.next().getValue();
-            NSAddAck addAck = new NSAddAck();
-            nsClient.dbAdd(dbar, addAck);
-            if (addAck._id == null) {
-                log.debug("QUEUE No response on dbAdd");
-                log.debug(UploadQueue.status());
-                return;
+        Thread doResend = new Thread() {
+            public void run() {
+                Iterator<Map.Entry<String,DbRequest>> iter = queue.entrySet().iterator();
+                while (iter.hasNext()) {
+                    DbRequest dbr = iter.next().getValue();
+                    if (dbr.action.equals("dbAdd")) {
+                        NSAddAck addAck = new NSAddAck();
+                        nsClient.dbAdd(dbr, addAck);
+                        if (addAck._id == null) {
+                            log.debug("QUEUE No response on dbAdd");
+                            log.debug(UploadQueue.status());
+                            return;
+                        }
+                        log.debug("QUEUE dbAdd processed: " + dbr.data.toString());
+                        iter.remove();
+                        log.debug(UploadQueue.status());
+                    } else if (dbr.action.equals("dbRemove")) {
+                        NSUpdateAck removeAck = new NSUpdateAck();
+                        nsClient.dbRemove(dbr, removeAck);
+                        if (!removeAck.result) {
+                            log.debug("QUEUE No response on dbRemove");
+                            log.debug(UploadQueue.status());
+                            return;
+                        }
+                        log.debug("QUEUE dbRemove processed: " + dbr._id);
+                        iter.remove();
+                        log.debug(UploadQueue.status());
+                    } else if (dbr.action.equals("dbUpdate")) {
+                        NSUpdateAck updateAck = new NSUpdateAck();
+                        nsClient.dbUpdate(dbr, updateAck);
+                        if (!updateAck.result) {
+                            log.debug("QUEUE No response on dbUpdate");
+                            log.debug(UploadQueue.status());
+                            return;
+                        }
+                        log.debug("QUEUE dbUpdate processed: " + dbr._id);
+                        iter.remove();
+                        log.debug(UploadQueue.status());
+                    } else if (dbr.action.equals("dbUpdateUnset")) {
+                        NSUpdateAck updateUnsetAck = new NSUpdateAck();
+                        nsClient.dbUpdateUnset(dbr, updateUnsetAck);
+                        if (!updateUnsetAck.result) {
+                            log.debug("QUEUE No response on dbUpdateUnset");
+                            log.debug(UploadQueue.status());
+                            return;
+                        }
+                        log.debug("QUEUE dbUpdateUnset processed: " + dbr._id);
+                        iter.remove();
+                        log.debug(UploadQueue.status());
+                    }
+                }
             }
-            String key = dbar.data.optString("created_at") + " " + dbar.data.optString("eventType");
-            log.debug("QUEUE dbAdd processed: " + key);
-            addIter.remove();
+        };
+        doResend.start();
+        try {
+            doResend.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-
-        Iterator<Map.Entry<String,DbRemoveRequest>> removeIter = removeQueue.entrySet().iterator();
-        while (removeIter.hasNext()) {
-            DbRemoveRequest dbrr = removeIter.next().getValue();
-            NSUpdateAck removeAck = new NSUpdateAck();
-            nsClient.dbRemove(dbrr, removeAck);
-            if (!removeAck.result) {
-                log.debug("QUEUE No response on dbRemove");
-                log.debug(UploadQueue.status());
-                return;
-            }
-            log.debug("QUEUE dbRemove processed: " + dbrr._id);
-            removeIter.remove();
-        }
-
-        Iterator<Map.Entry<String,DbUpdateRequest>> updateIter = updateQueue.entrySet().iterator();
-        while (updateIter.hasNext()) {
-            DbUpdateRequest dbur = updateIter.next().getValue();
-            NSUpdateAck updateAck = new NSUpdateAck();
-            nsClient.dbUpdate(dbur, updateAck);
-            if (!updateAck.result) {
-                log.debug("QUEUE No response on dbUpdate");
-                log.debug(UploadQueue.status());
-                return;
-            }
-            log.debug("QUEUE dbUpdate processed: " + dbur._id);
-            updateIter.remove();
-        }
-
-        Iterator<Map.Entry<String,DbUpdateRequest>> updateUnsetIter = updateUnsetQueue.entrySet().iterator();
-        while (updateUnsetIter.hasNext()) {
-            DbUpdateRequest dbur = updateIter.next().getValue();
-            NSUpdateAck updateUnsetAck = new NSUpdateAck();
-            nsClient.dbUpdateUnset(dbur, updateUnsetAck);
-            if (!updateUnsetAck.result) {
-                log.debug("QUEUE No response on dbUpdateUnset");
-                log.debug(UploadQueue.status());
-                return;
-            }
-            log.debug("QUEUE dbUpdateUnset processed: " + dbur._id);
-            updateUnsetIter.remove();
-        }
-
-        log.debug(UploadQueue.status());
+        resendRunning = false;
     }
 
 }
