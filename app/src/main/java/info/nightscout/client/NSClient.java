@@ -313,7 +313,7 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBUPDATE Busy, adding to queue");
-                UploadQueue.queue.put(dbr.hash(), dbr);
+                UploadQueue.put(dbr.hash(), dbr);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -341,7 +341,7 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBUPDATE Busy, adding to queue");
-                UploadQueue.queue.put(dbr.hash(), dbr);
+                UploadQueue.put(dbr.hash(), dbr);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -363,7 +363,7 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBUPUNSET Busy, adding to queue");
-                UploadQueue.queue.put(dbr.hash(), dbr);
+                UploadQueue.put(dbr.hash(), dbr);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -391,7 +391,7 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBUPUNSET Busy, adding to queue");
-                UploadQueue.queue.put(dbr.hash(), dbr);
+                UploadQueue.put(dbr.hash(), dbr);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -413,7 +413,7 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBREMOVE Busy, adding to queue");
-                UploadQueue.queue.put(dbr.hash(), dbr);
+                UploadQueue.put(dbr.hash(), dbr);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -440,7 +440,7 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBREMOVE Busy, adding to queue");
-                UploadQueue.queue.put(dbr.hash(), dbr);
+                UploadQueue.put(dbr.hash(), dbr);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -461,7 +461,7 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBADD Busy, adding to queue");
-                UploadQueue.queue.put(dbr.hash(), dbr);
+                UploadQueue.put(dbr.hash(), dbr);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -488,7 +488,7 @@ public class NSClient {
             if (!isConnected) return;
             if (uploading) {
                 log.debug("DBADD Busy, adding to queue");
-                UploadQueue.queue.put(dbr.hash(), dbr);
+                UploadQueue.put(dbr.hash(), dbr);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -504,115 +504,4 @@ public class NSClient {
         uploading = false;
     }
 
-/*
-    public void sendStatus(StatusEvent ev, String btStatus){
-        //log.debug("NSCLIENT sendStatus enter");
-        if (!isConnected) return;
-        JSONObject nsStatus = new JSONObject();
-        JSONObject pump = new JSONObject();
-        JSONObject battery = new JSONObject();
-        JSONObject status = new JSONObject();
-        try {
-            battery.put("percent", ev.remainBattery);
-            pump.put("battery", battery);
-
-            status.put("lastbolus", ev.last_bolus_amount);
-            status.put("lastbolustime", DateUtil.toISOString(ev.last_bolus_time));
-            if (ev.tempBasalRatio != -1) {
-                status.put("tempbasalpct", ev.tempBasalRatio);
-                if (ev.tempBasalStart != null) status.put("tempbasalstart", DateUtil.toISOString(ev.tempBasalStart));
-                if (ev.tempBasalRemainMin != 0) status.put("tempbasalremainmin", ev.tempBasalRemainMin);
-            }
-            status.put("connection", btStatus);
-            pump.put("status", status);
-
-            pump.put("reservoir", formatNumber1place.format(ev.remainUnits));
-            pump.put("clock", DateUtil.toISOString(new Date()));
-            nsStatus.put("pump", pump);
-        } catch (JSONException e) {
-        }
-
-        class RunnableWithParam implements Runnable {
-            JSONObject param;
-            RunnableWithParam(JSONObject param) {
-                this.param = param;
-            }
-            public void run(){
-                sendAddStatus(param);
-                mPreparedStatus = null;
-                log.debug("NSCLIENT sendStatus sending");
-            };
-        }
-
-        // prepare task for execution in 3 sec
-        // cancel waiting task to prevent sending multiple statuses
-        if (mPreparedStatus != null) mOutgoingStatus.cancel(false);
-        Runnable task = new RunnableWithParam(nsStatus);
-        mPreparedStatus = nsStatus;
-        mOutgoingStatus = worker.schedule(task, 3, TimeUnit.SECONDS);
-    }
-
-    public void sendTreatmentStatusUpdate(String _id, String status) {
-        try {
-            if (!isConnected) return;
-            JSONObject message = new JSONObject();
-            message.put("_id", _id);
-            message.put("collection", "treatments");
-            JSONObject messageData = new JSONObject();
-            messageData.put("status", status);
-            message.put("data", messageData);
-            mSocket.emit("dbUpdate", message);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
-    };
-
-    public void sendAddTreatment(JSONObject data, NSAddAck ack) {
-        try {
-            if (!isConnected) return;
-            JSONObject message = new JSONObject();
-            message.put("collection", "treatments");
-            message.put("data", data);
-            mSocket.emit("dbAdd", message, ack);
-            synchronized(ack) {
-                try {
-                    ack.wait(3000);
-                } catch (InterruptedException e) {
-                }
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
-    };
-
-    public void sendAddTreatment(JSONObject data) {
-        try {
-            if (!isConnected) return;
-            JSONObject message = new JSONObject();
-            message.put("collection", "treatments");
-            message.put("data", data);
-            mSocket.emit("dbAdd", message);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
-    };
-
-    private void sendAddStatus(JSONObject data) {
-        try {
-            if (!isConnected) return;
-            JSONObject message = new JSONObject();
-            message.put("collection", "devicestatus");
-            message.put("data", data);
-            mSocket.emit("dbAdd", message);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
-    };
-
-*/
 }

@@ -11,6 +11,8 @@ import info.nightscout.client.MainApp;
 import info.nightscout.client.NSClient;
 import info.nightscout.client.acks.NSAddAck;
 import info.nightscout.client.acks.NSUpdateAck;
+import info.nightscout.client.broadcasts.BroadcastQueueStatus;
+import info.nightscout.client.broadcasts.BroadcastStatus;
 
 /**
  * Created by mike on 21.02.2016.
@@ -28,6 +30,12 @@ public class UploadQueue {
 
     public static String status() {
         return "QUEUE: " + queue.size();
+    }
+
+    public static void put(String hash, DbRequest dbr) {
+        queue.put(hash, dbr);
+        BroadcastQueueStatus bs = new BroadcastQueueStatus();
+        bs.handleNewStatus(queue.size(), MainApp.instance().getApplicationContext());
     }
 
     public static void reset() {

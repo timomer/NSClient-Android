@@ -47,7 +47,7 @@ public class DBAccessReceiver extends BroadcastReceiver {
             nsClient.dbAdd(dbar, addAck);
             if (addAck._id == null) {
                 log.debug("DBACCESS No response on dbAdd");
-                UploadQueue.queue.put(dbar.hash(), dbar);
+                UploadQueue.put(dbar.hash(), dbar);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -64,7 +64,7 @@ public class DBAccessReceiver extends BroadcastReceiver {
             nsClient.dbRemove(dbrr, updateAck);
             if (!updateAck.result) {
                 log.debug("DBACCESS No response on dbRemove");
-                UploadQueue.queue.put(dbrr.hash(), dbrr);
+                UploadQueue.put(dbrr.hash(), dbrr);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -81,7 +81,7 @@ public class DBAccessReceiver extends BroadcastReceiver {
             nsClient.dbUpdate(dbur, updateAck);
             if (!updateAck.result) {
                 log.debug("DBACCESS No response on dbUpdate");
-                UploadQueue.queue.put(dbur.hash(), dbur);
+                UploadQueue.put(dbur.hash(), dbur);
                 log.debug(UploadQueue.status());
                 return;
             }
@@ -98,7 +98,7 @@ public class DBAccessReceiver extends BroadcastReceiver {
             nsClient.dbUpdateUnset(dbur, updateAck);
             if (!updateAck.result) {
                 log.debug("DBACCESS No response on dbUpdateUnset");
-                UploadQueue.queue.put(_id, dbur);
+                UploadQueue.put(_id, dbur);
                 log.debug(UploadQueue.status());
                 return;
             }
