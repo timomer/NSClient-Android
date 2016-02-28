@@ -34,18 +34,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="info.nightscout.client.MainActivity" />
         </activity>
-        <!--
-        <receiver
-            android:name=".ReceiverBG"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="danaR.action.BG_DATA" />
-            </intent-filter>
-        </receiver>
-        -->
-        <service
-            android:name=".services.ServiceBG"
-            android:exported="false" />
 
         <receiver
             android:name=".receivers.AutoStart"
@@ -53,18 +41,6 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-
-        <!-- DanaApp receivers -->
-        <receiver android:name="info.nightscout.nsupload.TempBasalData">
-            <intent-filter>
-                <action android:name="danaR.action.TEMP_BASAL_DATA" />
-            </intent-filter>
-        </receiver>
-        <receiver android:name="info.nightscout.nsupload.UserEventData">
-            <intent-filter>
-                <action android:name="danaR.action.USER_EVENT_DATA" />
             </intent-filter>
         </receiver>
 
