@@ -4,6 +4,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -11,8 +12,11 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ScrollView;
@@ -83,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 log.debug("ALARMMAN setup");
             }
         });
+        onStatusEvent(new RestartEvent());
     }
 
     @Override
@@ -210,6 +215,15 @@ public class MainActivity extends AppCompatActivity {
         } catch (RuntimeException x) {
         }
         MainApp.bus().register(this);
+    }
+
+    @Subscribe
+    public void onStatusEvent(final RestartEvent e) {
+        SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
+        String web = SP.getString("ns_url", "");
+        TextView viewWeb = ((TextView) findViewById(R.id.nsWeb));
+        viewWeb.setText( Html.fromHtml("<a href=" + web + ">" + web + "</a>"));
+        viewWeb.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     private boolean haveNetworkConnection() {

@@ -24,12 +24,12 @@ import info.nightscout.client.acks.NSAuthAck;
 import info.nightscout.client.acks.NSUpdateAck;
 import info.nightscout.client.broadcasts.BroadcastProfile;
 import info.nightscout.client.broadcasts.BroadcastSgvs;
+import info.nightscout.client.broadcasts.BroadcastStatus;
 import info.nightscout.client.broadcasts.BroadcastTreatment;
-import info.nightscout.client.data.DbAddRequest;
-import info.nightscout.client.data.DbRemoveRequest;
-import info.nightscout.client.data.DbUpdateRequest;
+import info.nightscout.client.data.DbRequest;
 import info.nightscout.client.data.NSCal;
 import info.nightscout.client.data.NSSgv;
+import info.nightscout.client.data.NSStatus;
 import info.nightscout.client.data.NSTreatment;
 import info.nightscout.client.data.UploadQueue;
 import info.nightscout.client.events.NSStatusEvent;
@@ -55,6 +55,7 @@ public class NSClient {
     private Integer nsHours = 1;
 
     private final Integer timeToWaitForResponseInMs = 10000;
+    private boolean uploading = false;
 
     private String nsAPIhashCode = "";
 
@@ -204,16 +205,14 @@ public class NSClient {
 
                 if (data.has("status")) {
                     JSONObject status = data.getJSONObject("status");
-                    if (status.has("activeProfile")) {
-                        activeProfile = status.getString("activeProfile");
-                        if (activeProfile != "null") {
-                            MainApp.setNsActiveProfile(activeProfile);
-                            log.debug("NSCLIENT status activeProfile received: " + activeProfile);
-                        } else {
-                            activeProfile = null;
-                            MainApp.setNsActiveProfile(null);
-                        }
+                    NSStatus nsStatus = new NSStatus(status);
+                    activeProfile = nsStatus.getActiveProfile();
+                    MainApp.setNsActiveProfile(activeProfile);
+                    if (activeProfile != null) {
+                        log.debug("NSCLIENT status activeProfile received: " + activeProfile);
                     }
+                    BroadcastStatus bs = new BroadcastStatus();
+                    bs.handleNewStatus(nsStatus, MainApp.instance().getApplicationContext(), isDelta);
                     /*  Other received data to 2016/02/10
                         {
                           status: 'ok'
@@ -239,7 +238,7 @@ public class NSClient {
                         NSProfile nsProfile = new NSProfile(profile,activeProfile);
                         MainApp.setNsProfile(nsProfile);
                         log.debug("NSCLIENT profile received: " + nsProfile.log());
-                        bp.handleNewTreatment(nsProfile, MainApp.instance().getApplicationContext() );
+                        bp.handleNewTreatment(nsProfile, MainApp.instance().getApplicationContext(), isDelta);
                     }
                 }
                 if (data.has("treatments")) {
@@ -257,11 +256,11 @@ public class NSClient {
                                 continue;
                             }
                             // ********* TEST CODE END ********
-                            bt.handleNewTreatment(treatment,MainApp.instance().getApplicationContext());
+                            bt.handleNewTreatment(treatment,MainApp.instance().getApplicationContext(), isDelta);
                         } else if (treatment.getAction().equals("update")) {
-                            bt.handleChangedTreatment(jsonTreatment, MainApp.instance().getApplicationContext());
+                            bt.handleChangedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
                         } else if (treatment.getAction().equals("remove")) {
-                            bt.handleRemovedTreatment(jsonTreatment, MainApp.instance().getApplicationContext());
+                            bt.handleRemovedTreatment(jsonTreatment, MainApp.instance().getApplicationContext(), isDelta);
                         }
                     }
                 }
@@ -299,7 +298,7 @@ public class NSClient {
                             BgReading bgReading = new BgReading(sgv, actualCal, units);
                             emulator.handleNewBgReading(bgReading, isFull && index == 0, MainApp.instance().getApplicationContext());
                         }
-                        bs.handleNewSgv(sgv, MainApp.instance().getApplicationContext());
+                        bs.handleNewSgv(sgv, MainApp.instance().getApplicationContext(), isDelta);
                     }
                 }
             } catch (JSONException e) {
@@ -309,13 +308,20 @@ public class NSClient {
         }
     };
 
-    public void dbUpdate(DbUpdateRequest dbur, NSUpdateAck ack) {
+    public void dbUpdate(DbRequest dbr, NSUpdateAck ack) {
         try {
             if (!isConnected) return;
+            if (uploading) {
+                log.debug("DBUPDATE Busy, adding to queue");
+                UploadQueue.put(dbr.hash(), dbr);
+                log.debug(UploadQueue.status());
+                return;
+            }
+            uploading = true;
             JSONObject message = new JSONObject();
-            message.put("collection", dbur.collection);
-            message.put("_id", dbur._id);
-            message.put("data", dbur.data);
+            message.put("collection", dbr.collection);
+            message.put("_id", dbr._id);
+            message.put("data", dbr.data);
             mSocket.emit("dbUpdate", message, ack);
             synchronized(ack) {
                 try {
@@ -327,29 +333,45 @@ public class NSClient {
             e.printStackTrace();
             return;
         }
+        uploading = false;
     }
 
-    public void dbUpdate(DbUpdateRequest dbur) {
+    public void dbUpdate(DbRequest dbr) {
         try {
             if (!isConnected) return;
+            if (uploading) {
+                log.debug("DBUPDATE Busy, adding to queue");
+                UploadQueue.put(dbr.hash(), dbr);
+                log.debug(UploadQueue.status());
+                return;
+            }
+            uploading = true;
             JSONObject message = new JSONObject();
-            message.put("collection", dbur.collection);
-            message.put("_id", dbur._id);
-            message.put("data", dbur.data);
+            message.put("collection", dbr.collection);
+            message.put("_id", dbr._id);
+            message.put("data", dbr.data);
             mSocket.emit("dbUpdate", message);
         } catch (JSONException e) {
             e.printStackTrace();
             return;
         }
+        uploading = false;
     }
 
-    public void dbUpdateUnset(DbUpdateRequest dbur, NSUpdateAck ack) {
+    public void dbUpdateUnset(DbRequest dbr, NSUpdateAck ack) {
         try {
             if (!isConnected) return;
+            if (uploading) {
+                log.debug("DBUPUNSET Busy, adding to queue");
+                UploadQueue.put(dbr.hash(), dbr);
+                log.debug(UploadQueue.status());
+                return;
+            }
+            uploading = true;
             JSONObject message = new JSONObject();
-            message.put("collection", dbur.collection);
-            message.put("_id", dbur._id);
-            message.put("data", dbur.data);
+            message.put("collection", dbr.collection);
+            message.put("_id", dbr._id);
+            message.put("data", dbr.data);
             mSocket.emit("dbUpdateUnset", message, ack);
             synchronized(ack) {
                 try {
@@ -361,28 +383,44 @@ public class NSClient {
             e.printStackTrace();
             return;
         }
+        uploading = false;
     }
 
-    public void dbUpdateUnset(DbUpdateRequest dbur) {
+    public void dbUpdateUnset(DbRequest dbr) {
         try {
             if (!isConnected) return;
+            if (uploading) {
+                log.debug("DBUPUNSET Busy, adding to queue");
+                UploadQueue.put(dbr.hash(), dbr);
+                log.debug(UploadQueue.status());
+                return;
+            }
+            uploading = true;
             JSONObject message = new JSONObject();
-            message.put("collection", dbur.collection);
-            message.put("_id", dbur._id);
-            message.put("data", dbur.data);
+            message.put("collection", dbr.collection);
+            message.put("_id", dbr._id);
+            message.put("data", dbr.data);
             mSocket.emit("dbUpdateUnset", message);
         } catch (JSONException e) {
             e.printStackTrace();
             return;
         }
+        uploading = false;
     }
 
-    public void dbRemove(DbRemoveRequest dbrr, NSUpdateAck ack) {
+    public void dbRemove(DbRequest dbr, NSUpdateAck ack) {
         try {
             if (!isConnected) return;
+            if (uploading) {
+                log.debug("DBREMOVE Busy, adding to queue");
+                UploadQueue.put(dbr.hash(), dbr);
+                log.debug(UploadQueue.status());
+                return;
+            }
+            uploading = true;
             JSONObject message = new JSONObject();
-            message.put("collection", dbrr.collection);
-            message.put("_id", dbrr._id);
+            message.put("collection", dbr.collection);
+            message.put("_id", dbr._id);
             mSocket.emit("dbRemove", message, ack);
             synchronized(ack) {
                 try {
@@ -394,27 +432,43 @@ public class NSClient {
             e.printStackTrace();
             return;
         }
+        uploading = false;
     }
 
-    public void dbRemove(DbRemoveRequest dbrr) {
+    public void dbRemove(DbRequest dbr) {
         try {
             if (!isConnected) return;
+            if (uploading) {
+                log.debug("DBREMOVE Busy, adding to queue");
+                UploadQueue.put(dbr.hash(), dbr);
+                log.debug(UploadQueue.status());
+                return;
+            }
+            uploading = true;
             JSONObject message = new JSONObject();
-            message.put("collection", dbrr.collection);
-            message.put("_id", dbrr._id);
+            message.put("collection", dbr.collection);
+            message.put("_id", dbr._id);
             mSocket.emit("dbRemove", message);
         } catch (JSONException e) {
             e.printStackTrace();
             return;
         }
+        uploading = false;
     }
 
-    public void dbAdd(DbAddRequest dbar, NSAddAck ack) {
+    public void dbAdd(DbRequest dbr, NSAddAck ack) {
         try {
             if (!isConnected) return;
+            if (uploading) {
+                log.debug("DBADD Busy, adding to queue");
+                UploadQueue.put(dbr.hash(), dbr);
+                log.debug(UploadQueue.status());
+                return;
+            }
+            uploading = true;
             JSONObject message = new JSONObject();
-            message.put("collection", dbar.collection);
-            message.put("data", dbar.data);
+            message.put("collection", dbr.collection);
+            message.put("data", dbr.data);
             mSocket.emit("dbAdd", message, ack);
             synchronized(ack) {
                 try {
@@ -426,130 +480,28 @@ public class NSClient {
             e.printStackTrace();
             return;
         }
+        uploading = false;
     }
 
-    public void dbAdd(DbAddRequest dbar) {
+    public void dbAdd(DbRequest dbr) {
         try {
             if (!isConnected) return;
+            if (uploading) {
+                log.debug("DBADD Busy, adding to queue");
+                UploadQueue.put(dbr.hash(), dbr);
+                log.debug(UploadQueue.status());
+                return;
+            }
+            uploading = true;
             JSONObject message = new JSONObject();
-            message.put("collection", dbar.collection);
-            message.put("data", dbar.data);
+            message.put("collection", dbr.collection);
+            message.put("data", dbr.data);
             mSocket.emit("dbAdd", message);
         } catch (JSONException e) {
             e.printStackTrace();
             return;
         }
+        uploading = false;
     }
 
-/*
-    public void sendStatus(StatusEvent ev, String btStatus){
-        //log.debug("NSCLIENT sendStatus enter");
-        if (!isConnected) return;
-        JSONObject nsStatus = new JSONObject();
-        JSONObject pump = new JSONObject();
-        JSONObject battery = new JSONObject();
-        JSONObject status = new JSONObject();
-        try {
-            battery.put("percent", ev.remainBattery);
-            pump.put("battery", battery);
-
-            status.put("lastbolus", ev.last_bolus_amount);
-            status.put("lastbolustime", DateUtil.toISOString(ev.last_bolus_time));
-            if (ev.tempBasalRatio != -1) {
-                status.put("tempbasalpct", ev.tempBasalRatio);
-                if (ev.tempBasalStart != null) status.put("tempbasalstart", DateUtil.toISOString(ev.tempBasalStart));
-                if (ev.tempBasalRemainMin != 0) status.put("tempbasalremainmin", ev.tempBasalRemainMin);
-            }
-            status.put("connection", btStatus);
-            pump.put("status", status);
-
-            pump.put("reservoir", formatNumber1place.format(ev.remainUnits));
-            pump.put("clock", DateUtil.toISOString(new Date()));
-            nsStatus.put("pump", pump);
-        } catch (JSONException e) {
-        }
-
-        class RunnableWithParam implements Runnable {
-            JSONObject param;
-            RunnableWithParam(JSONObject param) {
-                this.param = param;
-            }
-            public void run(){
-                sendAddStatus(param);
-                mPreparedStatus = null;
-                log.debug("NSCLIENT sendStatus sending");
-            };
-        }
-
-        // prepare task for execution in 3 sec
-        // cancel waiting task to prevent sending multiple statuses
-        if (mPreparedStatus != null) mOutgoingStatus.cancel(false);
-        Runnable task = new RunnableWithParam(nsStatus);
-        mPreparedStatus = nsStatus;
-        mOutgoingStatus = worker.schedule(task, 3, TimeUnit.SECONDS);
-    }
-
-    public void sendTreatmentStatusUpdate(String _id, String status) {
-        try {
-            if (!isConnected) return;
-            JSONObject message = new JSONObject();
-            message.put("_id", _id);
-            message.put("collection", "treatments");
-            JSONObject messageData = new JSONObject();
-            messageData.put("status", status);
-            message.put("data", messageData);
-            mSocket.emit("dbUpdate", message);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
-    };
-
-    public void sendAddTreatment(JSONObject data, NSAddAck ack) {
-        try {
-            if (!isConnected) return;
-            JSONObject message = new JSONObject();
-            message.put("collection", "treatments");
-            message.put("data", data);
-            mSocket.emit("dbAdd", message, ack);
-            synchronized(ack) {
-                try {
-                    ack.wait(3000);
-                } catch (InterruptedException e) {
-                }
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
-    };
-
-    public void sendAddTreatment(JSONObject data) {
-        try {
-            if (!isConnected) return;
-            JSONObject message = new JSONObject();
-            message.put("collection", "treatments");
-            message.put("data", data);
-            mSocket.emit("dbAdd", message);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
-    };
-
-    private void sendAddStatus(JSONObject data) {
-        try {
-            if (!isConnected) return;
-            JSONObject message = new JSONObject();
-            message.put("collection", "devicestatus");
-            message.put("data", data);
-            mSocket.emit("dbAdd", message);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return;
-        }
-    };
-
-*/
 }

@@ -30,8 +30,3 @@ NS Client
  - Do I need care about success/failure of upload?
  
  No. NS client takas care about it. Undelivered records are queued and delivered when client reconnects to server.
-  
- - Are there any limitations?
- 
- When record is stored to queue, there is not preserved upload order on reconnection. When you send `dbUpdate` or `dbUpdateUnset` only last request 
- to the same record is stored to queue.

@@ -6,41 +6,28 @@ import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.os.PowerManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.List;
 
 import info.nightscout.client.data.NSProfile;
-import info.nightscout.client.data.NSSgv;
 
 /**
- * Created by mike on 22.02.2016.
+ * Created by mike on 28.02.2016.
  */
-public class BroadcastSgvs {
-    private static Logger log = LoggerFactory.getLogger(BroadcastSgvs.class);
-
-    public void handleNewSgv(NSSgv sgv, Context context, boolean isDelta) {
+public class BroadcastQueueStatus {
+    public void handleNewStatus(int size, Context context) {
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 "sendQueue");
         wakeLock.acquire();
         try {
             Bundle bundle = new Bundle();
-            bundle.putString("sgv", sgv.getData().toString());
-            bundle.putBoolean("delta", isDelta);
-            Intent intent = new Intent(Intents.ACTION_NEW_SGV);
+            bundle.putInt("size", size);
+            Intent intent = new Intent(Intents.ACTION_QUEUE_STATUS);
             intent.putExtras(bundle);
             intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
             context.sendBroadcast(intent);
-            List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
-
-            log.debug("SGV " + x.size() + " receivers");
-
         } finally {
             wakeLock.release();
         }
     }
-
-
 }

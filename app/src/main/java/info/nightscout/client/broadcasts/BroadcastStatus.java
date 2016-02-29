@@ -11,31 +11,30 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import info.nightscout.client.data.NSProfile;
-import info.nightscout.client.data.NSSgv;
+import info.nightscout.client.data.NSStatus;
 
 /**
- * Created by mike on 22.02.2016.
+ * Created by mike on 24.02.2016.
  */
-public class BroadcastSgvs {
-    private static Logger log = LoggerFactory.getLogger(BroadcastSgvs.class);
+public class BroadcastStatus {
+    private static Logger log = LoggerFactory.getLogger(BroadcastStatus.class);
 
-    public void handleNewSgv(NSSgv sgv, Context context, boolean isDelta) {
+    public void handleNewStatus(NSStatus status, Context context, boolean isDelta) {
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 "sendQueue");
         wakeLock.acquire();
         try {
             Bundle bundle = new Bundle();
-            bundle.putString("sgv", sgv.getData().toString());
+            bundle.putString("status", status.getData().toString());
             bundle.putBoolean("delta", isDelta);
-            Intent intent = new Intent(Intents.ACTION_NEW_SGV);
+            Intent intent = new Intent(Intents.ACTION_NEW_STATUS);
             intent.putExtras(bundle);
             intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
             context.sendBroadcast(intent);
             List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
 
-            log.debug("SGV " + x.size() + " receivers");
+            log.debug("STATUS: " + x.size() + " receivers");
 
         } finally {
             wakeLock.release();

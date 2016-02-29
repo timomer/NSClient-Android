@@ -79,6 +79,25 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".receivers.ResendReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="info.nightscout.client.RESEND" />
+            </intent-filter>
+        </receiver>
+
+
+        <receiver
+            android:name=".receivers.RestartReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="info.nightscout.client.RESTART" />
+            </intent-filter>
+        </receiver>
+
         <!-- Network change local receiver -->
         <receiver android:name=".receivers.NetworkChangeReceiver">
             <intent-filter>

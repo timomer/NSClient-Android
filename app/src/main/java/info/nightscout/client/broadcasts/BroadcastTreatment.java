@@ -27,7 +27,7 @@ import info.nightscout.client.data.NSTreatment;
 public class BroadcastTreatment {
     private static Logger log = LoggerFactory.getLogger(BroadcastTreatment.class);
 
-    public void handleNewTreatment(NSTreatment treatment, Context context) {
+    public void handleNewTreatment(NSTreatment treatment, Context context, boolean isDelta) {
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 "sendQueue");
@@ -35,6 +35,7 @@ public class BroadcastTreatment {
         try {
             Bundle bundle = new Bundle();
             bundle.putString("treatment", treatment.getData().toString());
+            bundle.putBoolean("delta", isDelta);
             Intent intent = new Intent(Intents.ACTION_NEW_TREATMENT);
             intent.putExtras(bundle);
             intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
@@ -48,7 +49,7 @@ public class BroadcastTreatment {
         }
     }
 
-    public void handleChangedTreatment(JSONObject treatment, Context context) {
+    public void handleChangedTreatment(JSONObject treatment, Context context, boolean isDelta) {
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 "sendQueue");
@@ -56,6 +57,7 @@ public class BroadcastTreatment {
         try {
             Bundle bundle = new Bundle();
             bundle.putString("treatment", treatment.toString());
+            bundle.putBoolean("delta", isDelta);
             Intent intent = new Intent(Intents.ACTION_CHANGED_TREATMENT);
             intent.putExtras(bundle);
             context.sendBroadcast(intent);
@@ -70,7 +72,7 @@ public class BroadcastTreatment {
         }
     }
 
-    public void handleRemovedTreatment(JSONObject treatment, Context context) {
+    public void handleRemovedTreatment(JSONObject treatment, Context context, boolean isDelta) {
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 "sendQueue");
@@ -78,6 +80,7 @@ public class BroadcastTreatment {
         try {
             Bundle bundle = new Bundle();
             bundle.putString("treatment", treatment.toString());
+            bundle.putBoolean("delta", isDelta);
             Intent intent = new Intent(Intents.ACTION_REMOVED_TREATMENT);
             intent.putExtras(bundle);
             context.sendBroadcast(intent);

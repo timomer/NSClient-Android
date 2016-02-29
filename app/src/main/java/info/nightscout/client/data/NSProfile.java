@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 /**
@@ -174,5 +175,20 @@ public class NSProfile {
             }
         }
         return 0D;
+    }
+
+    public String getActiveProfile() {
+        return activeProfile;
+    }
+
+    public static int minutesFromMidnight () {
+        Calendar c = Calendar.getInstance();
+        long now = c.getTimeInMillis();
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        long passed = now - c.getTimeInMillis();
+        return (int) (passed / 1000 / 60);
     }
 }
