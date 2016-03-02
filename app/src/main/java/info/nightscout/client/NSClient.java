@@ -1,7 +1,9 @@
 package info.nightscout.client;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiManager;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
@@ -59,6 +61,8 @@ public class NSClient {
 
     private String nsAPIhashCode = "";
 
+    WifiManager.WifiLock wifiLock = null;
+
     public NSClient(Bus bus) {
         MainApp.setNSClient(this);
         mBus = bus;
@@ -66,6 +70,8 @@ public class NSClient {
         dataCounter = 0;
 
         readPreferences();
+
+        keepWiFiOn(MainApp.instance().getApplicationContext(), true);
 
         if (nsAPISecret!="") nsAPIhashCode = Hashing.sha1().hashString(nsAPISecret, Charsets.UTF_8).toString();
 
@@ -119,6 +125,7 @@ public class NSClient {
             mSocket = null;
             MainApp.setNSClient(null);
         }
+        keepWiFiOn(MainApp.instance().getApplicationContext(), false);
     }
 
     public void sendAuthMessage(NSAuthAck ack) {
@@ -502,6 +509,25 @@ public class NSClient {
             return;
         }
         uploading = false;
+    }
+
+    public void keepWiFiOn(Context context, boolean on) {
+        if (wifiLock == null) {
+            WifiManager wm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+            if (wm != null) {
+                wifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL, "NSClient");
+                wifiLock.setReferenceCounted(true);
+            }
+        }
+        if (wifiLock != null) { // May be null if wm is null
+            if (on) {
+                wifiLock.acquire();
+                log.debug("Adquired WiFi lock");
+            } else if (wifiLock.isHeld()) {
+                wifiLock.release();
+                log.debug("Released WiFi lock");
+            }
+        }
     }
 
 }
