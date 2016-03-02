@@ -26,7 +26,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
         if (bundles.containsKey("bssid")) {
             String val;
             val = intent.getStringExtra("bssid");
-            //if (val != null) log.debug("NETCHANGE:   bssid: " + val);
+            if (val != null) log.debug("NETCHANGE:   bssid: " + val);
         }
 
         if (bundles.containsKey("networkInfo")) {
@@ -46,43 +46,43 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
         if (bundles.containsKey("newRssi")) {
             int val;
             val = intent.getIntExtra("newRssi", -1);
-            //log.debug("NETCHANGE:   newRssi: " + val);
+            log.debug("NETCHANGE:   newRssi: " + val);
         }
 
         if (bundles.containsKey("newState")) {
             SupplicantState state;
             state = (SupplicantState) intent.getParcelableExtra("newState");
-            //if (state != null) log.debug("NETCHANGE:   newState: " + state);
+            if (state != null) log.debug("NETCHANGE:   newState: " + state);
         }
 
         if (bundles.containsKey("previous_wifi_state")) {
             int wifi_state;
             wifi_state = intent.getIntExtra("previous_wifi_state", -1);
-            //if (wifi_state != -1) log.debug("NETCHANGE:   previous_wifi_state: " + wifi_state);
+            if (wifi_state != -1) log.debug("NETCHANGE:   previous_wifi_state: " + wifi_state);
         }
 
         if (bundles.containsKey("connected")) {
             boolean connected;
             connected = intent.getBooleanExtra("connected", false);
-            //log.debug("NETCHANGE:   connected: " + connected);
+            log.debug("NETCHANGE:   connected: " + connected);
         }
 
         if (bundles.containsKey("supplicantError")) {
             int error;
             error = intent.getIntExtra("supplicantError", -1);
-            //if (error != -1) log.debug("NETCHANGE:   supplicantError: " + error);
+            if (error != -1) log.debug("NETCHANGE:   supplicantError: " + error);
         }
 
         if (bundles.containsKey("wifiInfo")) {
             WifiInfo info;
             info = (WifiInfo) intent.getParcelableExtra("wifiInfo");
-            //if (info != null) log.debug("NETCHANGE:   wifiInfo: " + info);
+            if (info != null) log.debug("NETCHANGE:   wifiInfo: " + info);
         }
 
         if (bundles.containsKey("wifi_state")) {
             int wifi_state;
             wifi_state = intent.getIntExtra("wifi_state", -1);
-            //if (wifi_state != -1) log.debug("NETCHANGE:   wifi_state: " + wifi_state);
+            if (wifi_state != -1) log.debug("NETCHANGE:   wifi_state: " + wifi_state);
         }
 
     }

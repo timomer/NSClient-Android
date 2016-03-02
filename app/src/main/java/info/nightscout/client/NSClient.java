@@ -522,7 +522,7 @@ public class NSClient {
         if (wifiLock != null) { // May be null if wm is null
             if (on) {
                 wifiLock.acquire();
-                log.debug("Adquired WiFi lock");
+                log.debug("Aquired WiFi lock");
             } else if (wifiLock.isHeld()) {
                 wifiLock.release();
                 log.debug("Released WiFi lock");

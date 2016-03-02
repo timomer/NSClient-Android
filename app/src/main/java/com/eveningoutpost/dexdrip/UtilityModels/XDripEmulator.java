@@ -10,6 +10,7 @@ import android.preference.PreferenceManager;
 
 import com.eveningoutpost.dexdrip.Models.BgReading;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +21,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import info.nightscout.client.MainApp;
 
@@ -31,6 +36,11 @@ public class XDripEmulator {
     private static Logger log = LoggerFactory.getLogger(XDripEmulator.class);
     private static List<BgReading> latest6bgReadings = new ArrayList<BgReading>();
     static DecimalFormat formatNumber1place = new DecimalFormat("0.0");
+
+    private static final ScheduledExecutorService worker = Executors.newSingleThreadScheduledExecutor();
+    private static Intent preparedIntent = null;
+    private static Long preparedTimestamp = 0l;
+    private static ScheduledFuture<?> outgoingIntent = null;
 
 
     public void handleNewBgReading(BgReading bgReading, boolean isFull, Context context) {
@@ -121,10 +131,10 @@ public class XDripEmulator {
             if (notGood) return;
 
             Bundle bundle = new Bundle();
-            BgReading timeMatechedRecordCurrent = latest6bgReadings.get(sizeRecords - 1);
-            bundle.putLong("time", timeMatechedRecordCurrent.timestamp);
-            bundle.putInt("value", (int) timeMatechedRecordCurrent.value);
-            bundle.putInt("delta", (int) (timeMatechedRecordCurrent.value - latest6bgReadings.get(sizeRecords - 2).value));
+            BgReading timeMatchedRecordCurrent = latest6bgReadings.get(sizeRecords - 1);
+            bundle.putLong("time", timeMatchedRecordCurrent.timestamp);
+            bundle.putInt("value", (int) timeMatchedRecordCurrent.value);
+            bundle.putInt("delta", (int) (timeMatchedRecordCurrent.value - latest6bgReadings.get(sizeRecords - 2).value));
             bundle.putDouble("deltaAvg30min", deltaAvg30min);
             bundle.putDouble("deltaAvg15min", deltaAvg15min);
             bundle.putDouble("avg30min", avg30min);
@@ -132,10 +142,35 @@ public class XDripEmulator {
 
             intent.putExtras(bundle);
 
-            List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
-            log.debug("DANAAPP  " + x.size() + " receivers");
+            // Postpone sending because on restart of client multiple BGs are comming and we need to send only last one
+            class RunnableWithParam implements Runnable {
+                Intent intent;
+                Context context;
+                RunnableWithParam(Intent intent, Context context) {
+                    this.context = context;
+                    this.intent = intent;
+                }
+                public void run(){
+                    List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
+                    log.debug("DANAAPP  " + x.size() + " receivers");
 
-            context.sendBroadcast(intent);
+                    context.sendBroadcast(intent);
+                    preparedTimestamp = 0l;
+                };
+            }
+
+            // prepare task for execution in 5 sec
+            // cancel waiting task to prevent sending multiple statuses
+            if (preparedTimestamp != 0l)
+                if (timeMatchedRecordCurrent.timestamp > preparedTimestamp) {
+                    outgoingIntent.cancel(false);
+                    preparedTimestamp = 0l;
+                }
+            if (preparedTimestamp == 0l) {
+                Runnable task = new RunnableWithParam(intent, context);
+                preparedTimestamp = timeMatchedRecordCurrent.timestamp;
+                outgoingIntent = worker.schedule(task, 5, TimeUnit.SECONDS);
+            }
         }
     }
 }
