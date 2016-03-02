@@ -13,6 +13,8 @@ public class BgReading {
     public int battery_level;
     public String units = " mg/dl";
 
+    public BgReading() {}
+
     public BgReading(NSSgv sgv, NSCal cal) {
         slope = cal.slope;
         raw = sgv.getUnfiltered();

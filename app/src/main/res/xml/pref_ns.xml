@@ -55,9 +55,7 @@
         </SwitchPreference>
         <SwitchPreference
             android:title="@string/ns_sendtodanaapp"
-            android:dependency="ns_emulate_xdrip"
             android:key="ns_sendtodanaapp"
-            android:disableDependentsState="false"
             android:summary="@string/ns_ns_sendtodanaapp_summary">
         </SwitchPreference>
     </PreferenceCategory>

@@ -42,6 +42,19 @@ public class XDripEmulator {
     private static Long preparedTimestamp = 0l;
     private static ScheduledFuture<?> outgoingIntent = null;
 
+    public void addBgReading(BgReading bgReading) {
+        latest6bgReadings.add(bgReading);
+        // sort
+        class BgReadingsComparator implements Comparator<BgReading> {
+            @Override
+            public int compare(BgReading a, BgReading b) {
+                return a.timestamp > b.timestamp ? 1 : (a.timestamp < b.timestamp ? -1 : 0);
+            }
+        }
+        Collections.sort(latest6bgReadings, new BgReadingsComparator());
+        // cut off to 6 records
+        if (latest6bgReadings.size() > 7) latest6bgReadings.remove(0);
+    }
 
     public void handleNewBgReading(BgReading bgReading, boolean isFull, Context context) {
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
@@ -69,25 +82,15 @@ public class XDripEmulator {
             context.sendBroadcast(intent, Intents.RECEIVER_PERMISSION);
             List<ResolveInfo> x = context.getPackageManager().queryBroadcastReceivers(intent, 0);
 
-            log.debug("XDRIP BG " + bgReading.valInUnit() + " (" + new SimpleDateFormat("H:mm").format(new Date(bgReading.timestamp)) + ") " + x.size() + " receivers");
+            log.debug("XDRIPEMU BG " + bgReading.valInUnit() + " (" + new SimpleDateFormat("H:mm").format(new Date(bgReading.timestamp)) + ") " + x.size() + " receivers");
 
             // reset array if data are comming from new connection
             if (isFull) latest6bgReadings = new ArrayList<BgReading>();
 
-            // add new reading
-            latest6bgReadings.add(bgReading);
-            // sort
-            class BgReadingsComparator implements Comparator<BgReading> {
-                @Override
-                public int compare(BgReading a, BgReading b) {
-                    return a.timestamp > b.timestamp ? 1 : (a.timestamp < b.timestamp ? -1 : 0);
-                }
-            }
-            Collections.sort(latest6bgReadings, new BgReadingsComparator());
-            // cut off to 6 records
-            if (latest6bgReadings.size() > 7) latest6bgReadings.remove(0);
+            // add new reading CHANGE: now picked up as broadcast
+            // addBgReading(bgReading);
+            // if (sendToDanaApp) sendToBroadcastReceiverToDanaApp(context);
 
-            if (sendToDanaApp) sendToBroadcastReceiverToDanaApp(context);
 
         } finally {
             wakeLock.release();
@@ -98,7 +101,6 @@ public class XDripEmulator {
 
 
         Intent intent = new Intent("danaR.action.BG_DATA");
-        //Collections.reverse(latest6bgReadings);
 
         int sizeRecords = latest6bgReadings.size();
         double deltaAvg30min = 0d;

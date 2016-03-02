@@ -11,6 +11,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- To receive data from xdrip. -->
+    <uses-permission android:name="com.eveningoutpost.dexdrip.permissions.RECEIVE_BG_ESTIMATE" />
+
     <application
         android:name=".MainApp"
         android:allowBackup="true"
@@ -54,7 +57,6 @@
                 <action android:name="info.nightscout.client.DBACCESS" />
             </intent-filter>
         </receiver>
-
         <receiver
             android:name=".receivers.ResendReceiver"
             android:enabled="true"
@@ -63,8 +65,6 @@
                 <action android:name="info.nightscout.client.RESEND" />
             </intent-filter>
         </receiver>
-
-
         <receiver
             android:name=".receivers.RestartReceiver"
             android:enabled="true"
@@ -87,6 +87,14 @@
             android:process=":mainProcess">
             <intent-filter>
                 <action android:name="info.nightscout.client.ReceiverKeepAlive.action.PING" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".receivers.xDripReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.eveningoutpost.dexdrip.BgEstimate" />
             </intent-filter>
         </receiver>
 
