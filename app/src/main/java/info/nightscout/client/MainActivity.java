@@ -19,7 +19,9 @@ import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.CompoundButton;
 import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.eveningoutpost.dexdrip.UtilityModels.XDripEmulator;
@@ -42,6 +44,7 @@ import org.json.JSONObject;
 import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -51,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     static private HandlerThread handlerThread;
     private TextView mTextView;
     static private ScrollView scrollview;
+    private Switch switchAutoscroll;
     private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
 
     @Override
@@ -65,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         scrollview = ((ScrollView) findViewById(R.id.scrollView));
+        switchAutoscroll = ((Switch) findViewById(R.id.nsAutoScroll));
         mTextView = (TextView) findViewById(R.id.log);
 
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -88,6 +93,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         onStatusEvent(new RestartEvent());
+
+        boolean autoscrollEnabled = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("nsAutoScroll", true);
+        switchAutoscroll.setChecked(autoscrollEnabled);
+        switchAutoscroll.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean("nsAutoScroll", isChecked);
+                editor.commit();
+            }
+        });
     }
 
     @Override
@@ -182,6 +199,30 @@ public class MainActivity extends AppCompatActivity {
         private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
         private TextView mTextView;
 
+        private List<String> listLog = new ArrayList<String>();
+        private static int MAX_ERROR_LINES = 400;
+
+        private void addToLog(String str) {
+            SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
+            try { MAX_ERROR_LINES = SP.getInt("ns_log_size", 400); } catch(Exception e) {}
+            if (str.length() > 0) {
+                listLog.add( str) ;
+            }
+            // remove the first line if log is too large
+            if (listLog.size() >= MAX_ERROR_LINES) {
+                listLog.remove(0);
+            }
+            updateLog();
+        }
+
+        private void updateLog() {
+            String log = "";
+            for (String str : listLog) {
+                log += str + "\n";
+            }
+            mTextView.setText(log);
+        }
+
         public TextViewLogger(TextView mTextView, Handler handler) {
             this.mTextView = mTextView;
             this.handler = handler;
@@ -194,17 +235,18 @@ public class MainActivity extends AppCompatActivity {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        mTextView.append(timeFormat.format(new Date()) + " " + eventObject.getMessage() + "\n");
-                        scrollview.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                scrollview.fullScroll(ScrollView.FOCUS_DOWN);
-                            }
-                        });
+                        addToLog(timeFormat.format(new Date()) + " " + eventObject.getMessage());
+                        SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
+                        if (SP.getBoolean("nsAutoScroll", true)) {
+                            scrollview.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    scrollview.fullScroll(ScrollView.FOCUS_DOWN);
+                                }
+                            });
+                        }
                     }
                 });
-
-
             }
         }
     }

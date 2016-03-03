@@ -55,6 +55,7 @@ public class NSClient {
     private String nsAPISecret = "";
     private String nsDevice = "";
     private Integer nsHours = 1;
+    private boolean acquireWiFiLock = false;
 
     private final Integer timeToWaitForResponseInMs = 10000;
     private boolean uploading = false;
@@ -71,7 +72,8 @@ public class NSClient {
 
         readPreferences();
 
-        keepWiFiOn(MainApp.instance().getApplicationContext(), true);
+        if (acquireWiFiLock)
+            keepWiFiOn(MainApp.instance().getApplicationContext(), true);
 
         if (nsAPISecret!="") nsAPIhashCode = Hashing.sha1().hashString(nsAPISecret, Charsets.UTF_8).toString();
 
@@ -125,7 +127,8 @@ public class NSClient {
             mSocket = null;
             MainApp.setNSClient(null);
         }
-        keepWiFiOn(MainApp.instance().getApplicationContext(), false);
+        if (acquireWiFiLock)
+            keepWiFiOn(MainApp.instance().getApplicationContext(), false);
     }
 
     public void sendAuthMessage(NSAuthAck ack) {
@@ -179,6 +182,7 @@ public class NSClient {
     public void readPreferences() {
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(MainApp.instance().getApplicationContext());
         try { nsEnabled = SP.getBoolean("ns_enable", false); } catch(Exception e) {}
+        try { acquireWiFiLock = SP.getBoolean("ns_android_acquirewifilock", false); } catch(Exception e) {}
         try { nsURL = SP.getString("ns_url", ""); } catch(Exception e) {}
         try { nsAPISecret = SP.getString("ns_api_secret", ""); } catch(Exception e) {}
         try { nsHours = SP.getInt("ns_api_hours", 1); } catch(Exception e) {}
@@ -522,7 +526,7 @@ public class NSClient {
         if (wifiLock != null) { // May be null if wm is null
             if (on) {
                 wifiLock.acquire();
-                log.debug("Aquired WiFi lock");
+                log.debug("Acquired WiFi lock");
             } else if (wifiLock.isHeld()) {
                 wifiLock.release();
                 log.debug("Released WiFi lock");

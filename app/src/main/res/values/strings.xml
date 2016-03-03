@@ -9,7 +9,7 @@
     <string name="action_resenddanaapp">Resend DanaApp broadcast</string>
     <string name="action_runtest">Run test</string>
 
-    <string name="ns_api_title">Nightscout connection</string>
+    <string name="ns_api_title">Nightscout settings</string>
     <string name="ns_enable_title">Connect to Nightscout</string>
     <string name="ns_url_title">Nightscout URL</string>
     <string name="ns_url_dialogtitle">Enter your Nightscout URL</string>
@@ -28,5 +28,10 @@
     <string name="ns_api_hours_summary">Number of hours to the past to read from Nightscout</string>
     <string name="ns_api_hours_dialogtitle">Hours to fetch</string>
     <string name="ns_api_hours_dialogmessage">Enter number of hours</string>
+    <string name="ns_log_title">Log settings</string>
+    <string name="ns_log_size_title">Log size</string>
+    <string name="ns_android_title">Android settings</string>
+    <string name="ns_android_aquirewifilock">Acquire WiFi lock</string>
+    <string name="ns_android_acquirewifilock_summary">Tell Android not to turn WiFi off when sleeping. It consumes more battery.</string>
 
 </resources>

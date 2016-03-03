@@ -59,4 +59,26 @@
             android:summary="@string/ns_ns_sendtodanaapp_summary">
         </SwitchPreference>
     </PreferenceCategory>
+    <PreferenceCategory
+        android:key="ns_log"
+        android:title="@string/ns_log_title">
+        <EditTextPreference
+            android:title="@string/ns_log_size_title"
+            android:key="ns_log_size"
+            android:defaultValue="400"
+            android:inputType="numberDecimal">
+        </EditTextPreference>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="ns_android"
+        android:title="@string/ns_android_title">
+        <SwitchPreference
+            android:title="@string/ns_android_aquirewifilock"
+            android:defaultValue="false"
+            android:key="ns_android_acquirewifilock"
+            android:summary="@string/ns_android_acquirewifilock_summary">
+        </SwitchPreference>
+    </PreferenceCategory>
+
 </PreferenceScreen>
