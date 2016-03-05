@@ -11,6 +11,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- To receive data from xdrip. -->
+    <uses-permission android:name="com.eveningoutpost.dexdrip.permissions.RECEIVE_BG_ESTIMATE" />
+
     <application
         android:name=".MainApp"
         android:allowBackup="true"
@@ -34,18 +37,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="info.nightscout.client.MainActivity" />
         </activity>
-        <!--
-        <receiver
-            android:name=".ReceiverBG"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="danaR.action.BG_DATA" />
-            </intent-filter>
-        </receiver>
-        -->
-        <service
-            android:name=".services.ServiceBG"
-            android:exported="false" />
 
         <receiver
             android:name=".receivers.AutoStart"
@@ -53,18 +44,6 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-
-        <!-- DanaApp receivers -->
-        <receiver android:name="info.nightscout.nsupload.TempBasalData">
-            <intent-filter>
-                <action android:name="danaR.action.TEMP_BASAL_DATA" />
-            </intent-filter>
-        </receiver>
-        <receiver android:name="info.nightscout.nsupload.UserEventData">
-            <intent-filter>
-                <action android:name="danaR.action.USER_EVENT_DATA" />
             </intent-filter>
         </receiver>
 
@@ -78,7 +57,6 @@
                 <action android:name="info.nightscout.client.DBACCESS" />
             </intent-filter>
         </receiver>
-
         <receiver
             android:name=".receivers.ResendReceiver"
             android:enabled="true"
@@ -87,8 +65,6 @@
                 <action android:name="info.nightscout.client.RESEND" />
             </intent-filter>
         </receiver>
-
-
         <receiver
             android:name=".receivers.RestartReceiver"
             android:enabled="true"
@@ -111,6 +87,14 @@
             android:process=":mainProcess">
             <intent-filter>
                 <action android:name="info.nightscout.client.ReceiverKeepAlive.action.PING" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".receivers.xDripReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.eveningoutpost.dexdrip.BgEstimate" />
             </intent-filter>
         </receiver>
 
